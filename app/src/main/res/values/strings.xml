@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Driver Profiler Mark 2</string>
+    <string name="textTitle">textTitle</string>
+    <string name="textPrediction">Testing Prediction</string>
+</resources>
