@@ -1,0 +1,2 @@
+rootProject.name = "Driver Profiler Mark 2"
+include ':app'

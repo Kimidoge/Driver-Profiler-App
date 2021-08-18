@@ -2,6 +2,8 @@ package com.example.driverprofilermark2;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.tensorflow.Tensor;
 import org.tensorflow.contrib.android.TensorFlowInferenceInterface;
 import org.tensorflow.lite.DataType;
 import org.tensorflow.lite.Interpreter;
@@ -24,6 +26,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.DoubleAccumulator;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener{
 
@@ -110,24 +113,17 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         Sensor sensorType = sensorEvent.sensor;
 
         if(sensorType.getType()==Sensor.TYPE_ACCELEROMETER) {
-            xAcc.setText("xAccel: " + sensorEvent.values[0]);
-            yAcc.setText("yAccel: " + sensorEvent.values[1]);
-            zAcc.setText("zAccel: " + sensorEvent.values[2]);
 
             // adding the accelerometer values inside the list
             ax.add(sensorEvent.values[0]);
             ay.add(sensorEvent.values[1]);
             az.add(sensorEvent.values[2]);
 
-            Log.d(TAG, "onSensorChanged: Accelerometer-X: " + ax );
-            Log.d(TAG, "onSensorChanged: Accelerometer-Y: " + ay );
-            Log.d(TAG, "onSensorChanged: Accelerometer-Z: " + az );
+            //Log.d(TAG, "onSensorChanged: Accelerometer-X: " + ax );
+            //Log.d(TAG, "onSensorChanged: Accelerometer-Y: " + ay );
+            //Log.d(TAG, "onSensorChanged: Accelerometer-Z: " + az );
 
         }else if(sensorType.getType()==Sensor.TYPE_GYROSCOPE){
-
-            xGyro.setText("xAccel: " + sensorEvent.values[0]);
-            yGyro.setText("yAccel: " + sensorEvent.values[1]);
-            zGyro.setText("zAccel: " + sensorEvent.values[2]);
 
             // adding the gyroscope values inside the list
             gx.add(sensorEvent.values[0]);
@@ -136,6 +132,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
            // Log.d(TAG, "onSensorChanged: Gyroscope Sensor values" + gx + "/n" + gy + "/n" + gz);
         }
+
 
         predictActivities();
 
@@ -148,12 +145,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
     private void predictActivities() {
-
         //create new list to combine all arrayLists into one big list. Data will be our input variable
         List<Float> data = new ArrayList<>();
         if( ax.size() >= TIME_STAMP && ay.size() >= TIME_STAMP && az.size() >= TIME_STAMP
-         && gx.size() >= TIME_STAMP && gy.size() >= TIME_STAMP && gz.size() >= TIME_STAMP)
-        {
+         && gx.size() >= TIME_STAMP && gy.size() >= TIME_STAMP && gz.size() >= TIME_STAMP) {
+
             data.addAll(ax.subList(0, TIME_STAMP));
             data.addAll(ay.subList(0, TIME_STAMP));
             data.addAll(az.subList(0, TIME_STAMP));
@@ -161,42 +157,67 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             data.addAll(gx.subList(0, TIME_STAMP));
             data.addAll(gy.subList(0, TIME_STAMP));
             data.addAll(gz.subList(0, TIME_STAMP));
+
+           //Log.d(TAG, "predictActivities: Data in List ArrayList" + data);  // manually counted, input shape is 50 time-steps of 6 features ========
+
+           // float[] input = toFloatArray(data);  //<===============CULPRIT - DOES NOT CONVERT PROPERLY INTO FLOAT ARRAY
+
+            try {
+                FullDataDriverprofiler model = FullDataDriverprofiler.newInstance(getApplicationContext());
+                float[] input = toFloatArray(data);
+                //Log.d(TAG, "predictActivities: toFloatArray: " +  input);  =================================
+
+                // Creates inputs for reference.
+                TensorBuffer inputFeature0 = TensorBuffer.createFixedSize(new int[]{1, 50, 6}, DataType.FLOAT32);
+
+                // creating the TensorBuffer for inputting the float array
+                //TensorBuffer tensorBuffer = TensorBuffer.createDynamic(DataType.FLOAT32);
+                //tensorBuffer.loadArray(toFloatArray(data));
+
+                // ByteBuffer byteBuffer = tensorBuffer.getBuffer();
+                inputFeature0.loadArray(toFloatArray(data));
+
+
+                // Runs model inference and gets result.
+                FullDataDriverprofiler.Outputs outputs = model.process(inputFeature0);
+
+                TensorBuffer outputFeature0 = outputs.getOutputFeature0AsTensorBuffer();
+                Log.d(TAG, "predictActivities: output array: "
+                        + outputFeature0.getFloatArray()[0] + "\t" + outputFeature0.getFloatArray()[1] + "\t"
+                        + outputFeature0.getFloatArray()[2] + "\t" + outputFeature0.getFloatArray()[3] + "\t"
+                        + outputFeature0.getFloatArray()[4] + "\t" + outputFeature0.getFloatArray()[5] + "\t"
+                        + outputFeature0.getFloatArray()[6] + "\t" + outputFeature0.getFloatArray()[7] + "\t"
+                        + outputFeature0.getFloatArray()[8]
+                );
+
+                // Releases model resources if no longer used.
+                model.close();
+
+                //clear the list for the next prediction
+                data.clear();
+                ax.clear();
+                ay.clear();
+                az.clear();
+                gx.clear();
+                gy.clear();
+                gz.clear();
+
+
+            } catch (IOException e) {
+                // TODO Handle the exception
+                e.printStackTrace();
+            }
         }
-        Log.d(TAG, "predictActivities: Data in List ArrayList"+ data);
-
-        try {
-            FullDataDriverprofiler model = FullDataDriverprofiler.newInstance(getApplicationContext());
-
-            // Creates inputs for reference.
-            TensorBuffer inputFeature0 = TensorBuffer.createFixedSize(new int[]{1, 50, 6}, DataType.FLOAT32);
-
-            // creating the input Tensor using the variable 'data'
-            TensorBuffer tensorBuffer = TensorBuffer.createDynamic(DataType.FLOAT32);
-            tensorBuffer.loadArray(toFloatArray(data));
 
 
-            ByteBuffer byteBuffer = tensorBuffer.getBuffer();
-            inputFeature0.loadBuffer(byteBuffer);
-
-            // Runs model inference and gets result.
-            FullDataDriverprofiler.Outputs outputs = model.process(inputFeature0);
-
-            TensorBuffer outputFeature0 = outputs.getOutputFeature0AsTensorBuffer();
-            Log.d(TAG, "predictActivities: output array: " + outputFeature0);
-
-            // Releases model resources if no longer used.
-            model.close();
-
-            //clear the list for the next prediction
-            ax.clear(); ay.clear(); az.clear();
-            gx.clear(); gy.clear(); gz.clear();
 
 
-        } catch (IOException e) {
-            // TODO Handle the exception
-        }
+            }
 
-    }
+
+
+
+
 
     private float[] toFloatArray(List<Float> data){
         int i = 0;
