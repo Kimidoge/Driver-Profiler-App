@@ -19,10 +19,15 @@ import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import com.example.driverprofilermark2.ml.FullDataDriverprofiler;
+
+import com.example.driverprofilermark2.ml.FullDataDriverprofilerNoscaleBatchnormalization;
+import com.example.driverprofilermark2.ml.FullDataDriverprofilerNoscaleBatchnormalization300;
+import com.example.driverprofilermark2.ml.FullDataDriverprofilerNoscaleDummy2;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,8 +41,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private SensorManager sensorManager;
     Sensor accelerometer;
     Sensor gyroscope;
+    private SensorEventListener accelerometerListener, gyroscopeListener;
 
     TextView xAcc, yAcc, zAcc, xGyro, yGyro, zGyro;
+    TextView textAccelerate, textAgroAccelerate, textAgroBrake, textAgroLeft, textAgroRight,textBrake, textIdling, textLeft, textRight;
+
 
     Interpreter tflite;
 
@@ -49,7 +57,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private float[] results;
 
     // TIME STAMP
-    private static final int TIME_STAMP = 50;
+    private static final int TIME_STAMP = 300;
 
 
 
@@ -60,9 +68,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         setContentView(R.layout.activity_main);
 
         // initialising variables
-        xAcc = (TextView)findViewById(R.id.xAccel);
-        yAcc = (TextView)findViewById(R.id.yAccel);
-        zAcc = (TextView)findViewById(R.id.zAccel);
+        xAcc = (TextView)findViewById(R.id.xAcc);
+        yAcc = (TextView)findViewById(R.id.yAcc);
+        zAcc = (TextView)findViewById(R.id.zAcc);
 
         xGyro = (TextView)findViewById(R.id.xGyro);
         yGyro = (TextView)findViewById(R.id.yGyro);
@@ -71,6 +79,16 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         // Initializing the lists for accelerometer and gyroscope
         ax = new ArrayList<>(); ay = new ArrayList<>(); az = new ArrayList<>();
         gx = new ArrayList<>(); gy = new ArrayList<>(); gz = new ArrayList<>();
+
+        textAccelerate = (TextView) findViewById(R.id.textAccelerate);
+        textAgroAccelerate = (TextView) findViewById(R.id.textAgroAcc);
+        textAgroBrake = (TextView) findViewById(R.id.textAgroBrake);
+        textAgroLeft = (TextView) findViewById(R.id.textAgroLeft);
+        textAgroRight = (TextView) findViewById(R.id.textAgroRight);
+        textBrake = (TextView) findViewById(R.id.textBrake);
+        textIdling = (TextView) findViewById(R.id.textIdling);
+        textLeft = (TextView) findViewById(R.id.textLeft);
+        textRight = (TextView) findViewById(R.id.textRight);
 
 
 
@@ -83,7 +101,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         if(accelerometer != null){
             // Register Listener for accelerometer
-            sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_FASTEST);
+            sensorManager.registerListener(this, accelerometer, 10000);
             Log.d(TAG, "onCreate: Accelerometer Initialized");
 
         }else{
@@ -96,7 +114,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         if (gyroscope != null) {
             // Register gyroscope listener
-            sensorManager.registerListener(this, gyroscope, SensorManager.SENSOR_DELAY_FASTEST);
+            sensorManager.registerListener(this, gyroscope,10000);
             Log.d(TAG, "onCreate: Gyroscope initialized");
 
         }else{
@@ -119,9 +137,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             ay.add(sensorEvent.values[1]);
             az.add(sensorEvent.values[2]);
 
-            //Log.d(TAG, "onSensorChanged: Accelerometer-X: " + ax );
-            //Log.d(TAG, "onSensorChanged: Accelerometer-Y: " + ay );
-            //Log.d(TAG, "onSensorChanged: Accelerometer-Z: " + az );
+            xAcc.setText("X-ACC: "+ sensorEvent.values[0]);
+            yAcc.setText("Y-ACC: "+ sensorEvent.values[1]);
+            zAcc.setText("Z-ACC: "+ sensorEvent.values[2]);
+
+
+           Log.d(TAG, "onSensorChanged: List Ax: " + ax );
+           Log.d(TAG, "onSensorChanged: List Ay: " + ay );
+           Log.d(TAG, "onSensorChanged: List Az: " + az );
 
         }else if(sensorType.getType()==Sensor.TYPE_GYROSCOPE){
 
@@ -131,6 +154,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             gz.add(sensorEvent.values[2]);
 
            // Log.d(TAG, "onSensorChanged: Gyroscope Sensor values" + gx + "/n" + gy + "/n" + gz);
+
+            xGyro.setText("X-GYRO: "+ sensorEvent.values[0]);
+            yGyro.setText("Y-GYRO: "+ sensorEvent.values[1]);
+            zGyro.setText("Z-GYRO: "+ sensorEvent.values[2]);
+
         }
 
 
@@ -158,17 +186,19 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             data.addAll(gy.subList(0, TIME_STAMP));
             data.addAll(gz.subList(0, TIME_STAMP));
 
-           //Log.d(TAG, "predictActivities: Data in List ArrayList" + data);  // manually counted, input shape is 50 time-steps of 6 features ========
+           Log.d(TAG, "predictActivities: Data in data (combined)" + data);  // manually counted, input shape is 50 time-steps of 6 features ========
 
            // float[] input = toFloatArray(data);  //<===============CULPRIT - DOES NOT CONVERT PROPERLY INTO FLOAT ARRAY
 
             try {
-                FullDataDriverprofiler model = FullDataDriverprofiler.newInstance(getApplicationContext());
+
+
+                FullDataDriverprofilerNoscaleDummy2 model = FullDataDriverprofilerNoscaleDummy2.newInstance(getApplicationContext());
                 float[] input = toFloatArray(data);
-                //Log.d(TAG, "predictActivities: toFloatArray: " +  input);  =================================
+                //Log.d(TAG, "predictActivities: toFloatArray: " +  input.);
 
                 // Creates inputs for reference.
-                TensorBuffer inputFeature0 = TensorBuffer.createFixedSize(new int[]{1, 50, 6}, DataType.FLOAT32);
+                TensorBuffer inputFeature0 = TensorBuffer.createFixedSize(new int[]{1, 300, 6}, DataType.FLOAT32);
 
                 // creating the TensorBuffer for inputting the float array
                 //TensorBuffer tensorBuffer = TensorBuffer.createDynamic(DataType.FLOAT32);
@@ -179,21 +209,33 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
 
                 // Runs model inference and gets result.
-                FullDataDriverprofiler.Outputs outputs = model.process(inputFeature0);
+                FullDataDriverprofilerNoscaleDummy2.Outputs outputs = model.process(inputFeature0);
+
+
 
                 TensorBuffer outputFeature0 = outputs.getOutputFeature0AsTensorBuffer();
+                textAccelerate.setText("Accelerate: \t" + outputFeature0.getFloatArray()[0]) ;
+                textAgroAccelerate.setText("Aggressive Accelerate: \t" + outputFeature0.getFloatArray()[1]);
+                textAgroBrake.setText("Aggressive Brake: \t" + outputFeature0.getFloatArray()[2]);
+                textAgroLeft.setText("Aggressive Left: \t" + outputFeature0.getFloatArray()[3]);
+                textAgroRight.setText("Aggressive Right: \t" + outputFeature0.getFloatArray()[4] );
+                textBrake.setText("Brake: \t" + outputFeature0.getFloatArray()[5] );
+                textIdling.setText("Idling: \t" + outputFeature0.getFloatArray()[6] );
+                textLeft.setText("Left: \t" +outputFeature0.getFloatArray()[7] );
+                textRight.setText("Right: \t" + outputFeature0.getFloatArray()[8] );
+
                 Log.d(TAG, "predictActivities: output array: "
-                        + outputFeature0.getFloatArray()[0] + "\t" + outputFeature0.getFloatArray()[1] + "\t"
-                        + outputFeature0.getFloatArray()[2] + "\t" + outputFeature0.getFloatArray()[3] + "\t"
-                        + outputFeature0.getFloatArray()[4] + "\t" + outputFeature0.getFloatArray()[5] + "\t"
-                        + outputFeature0.getFloatArray()[6] + "\t" + outputFeature0.getFloatArray()[7] + "\t"
+                        +outputFeature0.getFloatArray()[0]+ "\t\t" + outputFeature0.getFloatArray()[1] + "\t\t"
+                        +outputFeature0.getFloatArray()[2] + "\t\t" + outputFeature0.getFloatArray()[3] + "\t\t"
+                        +outputFeature0.getFloatArray()[4] + "\t\t" + outputFeature0.getFloatArray()[5] + "\t\t"
+                        + outputFeature0.getFloatArray()[6] + "\t\t" + outputFeature0.getFloatArray()[7] + "\t\t"
                         + outputFeature0.getFloatArray()[8]
                 );
 
+                //clear the list for the next prediction
+
                 // Releases model resources if no longer used.
                 model.close();
-
-                //clear the list for the next prediction
                 data.clear();
                 ax.clear();
                 ay.clear();
@@ -209,23 +251,26 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
         }
 
-
-
-
             }
 
 
-
-
-
-
     private float[] toFloatArray(List<Float> data){
-        int i = 0;
+       int i = 0;
+
         float[] array = new float[data.size()];
         for (Float f: data){
             array[i++] = (f !=null ? f: Float.NaN);
         }
+        //Log.d(TAG, "toFloatArray: " + array);
         return array;
+
+
+    }
+
+    private float Round(float value, int decimal_places){
+        BigDecimal bigDecimal = new BigDecimal(Float.toString(value));
+        bigDecimal = bigDecimal.setScale(decimal_places, BigDecimal.ROUND_HALF_UP);
+        return bigDecimal.floatValue();
     }
 
 
@@ -233,10 +278,19 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     protected void onResume() {
         super.onResume();
 
+        sensorManager.registerListener(this, gyroscope, 10000);
+        sensorManager.registerListener(this, accelerometer, 10000);
+        Toast.makeText(this, "onResume started", Toast.LENGTH_SHORT).show();
+
     }
 
     @Override
     protected void onPause() {
+        super.onPause();
+
+        Toast.makeText(this, "onPause started", Toast.LENGTH_SHORT).show();
+        sensorManager.unregisterListener(accelerometerListener);
+        sensorManager.unregisterListener(gyroscopeListener);
         super.onPause();
     }
 }

@@ -6,75 +6,129 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <TextView
-        android:id="@+id/xAccel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="ACCELX"
+    <LinearLayout
+        android:id="@+id/linearLayout"
+        android:layout_width="412dp"
+        android:layout_height="414dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.111"
+        app:layout_constraintHorizontal_bias="0.51"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.189" />
+        app:layout_constraintVertical_bias="0.378">
 
-    <TextView
-        android:id="@+id/yAccel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="ACCELY"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.116"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.264" />
+        <TextView
+            android:id="@+id/textAccelerate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Accelerate"
+            android:textSize="20sp" />
 
-    <TextView
-        android:id="@+id/zAccel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="ACCELZ"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.111"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.339" />
+        <TextView
+            android:id="@+id/textAgroAcc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Aggressive Accelerate"
+            android:textSize="20sp" />
 
-    <TextView
-        android:id="@+id/xGyro"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="GYROX"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.106"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.46" />
+        <TextView
+            android:id="@+id/textAgroBrake"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Aggressive Braking"
+            android:textSize="20sp" />
 
-    <TextView
-        android:id="@+id/yGyro"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="GYROY"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.106"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.523" />
+        <TextView
+            android:id="@+id/textAgroLeft"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Aggressive Left"
+            android:textSize="20sp" />
 
-    <TextView
-        android:id="@+id/zGyro"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="GYROZ"
+        <TextView
+            android:id="@+id/textAgroRight"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Aggressive Right"
+            android:textSize="20sp" />
+
+        <TextView
+            android:id="@+id/textBrake"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Brake"
+            android:textSize="20sp" />
+
+        <TextView
+            android:id="@+id/textIdling"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Idling"
+            android:textSize="20sp" />
+
+        <TextView
+            android:id="@+id/textLeft"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Left"
+            android:textSize="20sp" />
+
+        <TextView
+            android:id="@+id/textRight"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Right"
+            android:textSize="20sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="409dp"
+        android:layout_height="195dp"
+        android:layout_marginTop="2dp"
+        android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.106"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.588" />
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout">
+
+        <TextView
+            android:id="@+id/xAcc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="TextView" />
+
+        <TextView
+            android:id="@+id/yAcc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="TextView" />
+
+        <TextView
+            android:id="@+id/zAcc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="TextView" />
+
+        <TextView
+            android:id="@+id/xGyro"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="TextView" />
+
+        <TextView
+            android:id="@+id/yGyro"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="TextView" />
+
+        <TextView
+            android:id="@+id/zGyro"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="TextView" />
+    </LinearLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
